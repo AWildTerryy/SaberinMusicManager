@@ -1,0 +1,86 @@
+@page "/Playlists/{Name}"
+@using music_manager_starter.Shared
+
+@inject HttpClient Http
+
+@code {
+    [Parameter]
+    public string Name { get; set; }
+    private List<PlaylistTracks> playlist_tracks;
+    private List<Song> songs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        playlist_tracks = await Http.GetFromJsonAsync<List<PlaylistTracks>>("api/PlaylistTracks");
+        songs = await Http.GetFromJsonAsync<List<Song>>("api/songs");
+    }
+
+    private async Task HandleDelete(Guid playlist_id, Guid song_id)
+    {
+        await Http.DeleteAsync("api/PlaylistTracks/Delete/"+playlist_id+"/"+song_id);
+    }
+}
+
+<div class="flex flex-col">
+  <div class="-m-1.5 overflow-x-auto">
+    <div class="p-1.5 min-w-full inline-block align-middle">
+      <div class="overflow-hidden">
+        <div>
+            <button type="button" onclick="window.location='/playlists'" class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-none focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none">Go Back</button>
+        </div>
+        <div class= "relative">
+            <button type="button" onclick="window.location='/AddSongToPlaylist'" class="absolute right-0 inline-flex gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-none focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none">Add Song</button>
+        </div>
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr>
+              <th scope="col" class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Song</th>
+              <th scope="col" class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Artist</th>
+              <th scope="col" class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Album</th>
+              <th scope="col" class="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase">Genre</th>
+              <th scope="col" class="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase">Remove Song</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (playlist_tracks != null && songs != null)
+            {
+                @foreach (var playlist in playlist_tracks)
+                {
+                    Guid target_song = playlist.SongId;
+                    @foreach (var song in songs)
+                    {
+                        @if(target_song == song.Id)
+                        {
+                            <tr class="odd:bg-white even:bg-gray-100">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">@song.Title</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">@song.Artist</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">@song.Album</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">@song.Genre</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                                    <button type="button" onclick=HandleDelete(playlist.Id,song.Id) class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-none focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none">Delete</button>
+                                </td>
+                    </tr>    
+                        }    
+                    }
+
+                }
+
+            }
+            else
+            {
+                <tr class="odd:bg-white even:bg-gray-100">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">Song</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Artist</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Album</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">Genre</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                        <button type="button" class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-none focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none">Delete</button>
+                    </td>
+                    </tr>
+            }    
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

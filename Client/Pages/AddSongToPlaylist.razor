@@ -1,0 +1,98 @@
+@page "/AddSongToPlaylist"
+@inject HttpClient Http
+@using music_manager_starter.Shared
+
+@code {
+    private PlaylistTracks new_playlist_track = new PlaylistTracks();
+    private Playlist selected_playlist;
+    private Song selected_song;
+    private string message;
+    private List<Playlist> playlists;
+    private List<Song> songs;
+    private int counter,counter2 = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        playlists = await Http.GetFromJsonAsync<List<Playlist>>("api/Playlists");
+        songs = await Http.GetFromJsonAsync<List<Song>>("api/songs");
+    }
+    
+    private async Task HandleValidSubmit()
+    {
+        new_playlist_track.PlaylistId = selected_playlist.Id;
+        new_playlist_track.SongId = selected_song.Id;
+        var response = await Http.PostAsJsonAsync("api/PlaylistTracks", new_playlist_track);
+        if (response.IsSuccessStatusCode)
+        {
+            message = "Song added successfully!";
+            new_playlist_track = new PlaylistTracks(); 
+        }
+        else
+        {
+            message = "Error adding song. Please try again.";
+        }
+    }
+}
+
+
+<div class="p-6">
+    <h2 class="text-xl font-semibold text-white">Add New Song To Playlist</h2>
+    <EditForm Model="new_playlist_track" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <!--
+        <div class="relative inline-block text-right">
+            <div>
+                <button type="button" class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" id="menu-button" aria-expanded="true" aria-haspopup="true">
+                Playlists
+                <svg class="-ml-1 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
+                    <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                </svg>
+                </button>
+            </div>
+            <div class="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+                <div class="py-1" role="none">
+                @if (playlists != null && playlists.Count > 0)
+                {
+                    @foreach (var playlist in playlists)
+                    {
+                        <a class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="menu-item-@counter.ToString()">@playlist.Name</a>
+                        counter = counter+1;
+                        <InputSelect @bind-Value="selected_playlist"></InputSelect>
+                    }
+                }
+                </div>
+            </div>
+        </div>
+        -->
+        <div class="relative inline-block text-left">
+            <div>
+                <button type="button" class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-9 py-6 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" id="menu-button" aria-expanded="true" aria-haspopup="true">
+                Songs
+                <svg class="-mr-1 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
+                    <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                </svg>
+                </button>
+            </div>
+            <div class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+                <div class="py-1" role="none">
+                @if (songs != null && songs.Count > 0)
+                {
+                    @foreach (var song in songs)
+                    {
+                        <a class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="menu-item-@counter2.ToString()">@song.Title</a>
+                        counter2 = counter2 +1;
+                        <InputSelect @bind-Value="selected_song"></InputSelect>
+                    }
+                }
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded">Add Song To Playlist</button>
+    </EditForm>
+
+    @if (message != null)
+    {
+        <p class="mt-4 text-green-500">@message</p>
+    }
+</div>

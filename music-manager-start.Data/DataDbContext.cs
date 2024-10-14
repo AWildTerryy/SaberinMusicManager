@@ -14,6 +14,10 @@ namespace music_manager_starter.Data
 
         public DbSet<Song> Songs { get; set; }
 
+        public DbSet<Playlist> Playlists { get; set; }
+
+        public DbSet<PlaylistTracks> PlaylistTracks { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Song>().HasData(
@@ -25,7 +29,15 @@ namespace music_manager_starter.Data
                 new Song { Id = Guid.Parse("b7cc1c82-77e2-40d0-8bc2-d7e05962c0e3"), Title = "Utah", Artist = "French Cassettes", Album = "The Great Escape", Genre = "Indie" },
                 new Song { Id = Guid.Parse("22aa6f84-06d8-4a0e-bdad-3000b35b5b5f"), Title = "Something Real", Artist = "Post Malone", Album = "Twelve Carat Toothache", Genre = "Hip Hop" }
             );
-        }
+            modelBuilder.Entity<Playlist>().HasData(
+              new Playlist { Id = Guid.Parse("c0439fbb-c5ad-4dcd-aa84-b5468634459e"), Name = "Test"}  
+            );
 
+            modelBuilder.Entity<PlaylistTracks>().HasData(
+                new PlaylistTracks { PlaylistId = Guid.Parse("c0439fbb-c5ad-4dcd-aa84-b5468634459e"), SongId = Guid.Parse("d94aa1d4-75ee-4f7a-a89f-f77de7050c8d")}
+            );
+            modelBuilder.Entity<PlaylistTracks>()
+                .HasKey(a => new{a.PlaylistId, a.SongId});
+        }
     }
 }
