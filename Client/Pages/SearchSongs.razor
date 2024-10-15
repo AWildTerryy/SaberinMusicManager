@@ -5,7 +5,7 @@
 
 @code {
     private List<Song> songs;
-    public List<Song> filtered_songs;
+    private List<Song> filtered_songs;
     protected override async Task OnInitializedAsync()
     {
         songs = await Http.GetFromJsonAsync<List<Song>>("api/songs");

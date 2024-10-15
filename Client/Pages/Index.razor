@@ -5,7 +5,6 @@
 
 @code {
     private List<Song> songs;
-
     protected override async Task OnInitializedAsync()
     {
         songs = await Http.GetFromJsonAsync<List<Song>>("api/songs");
@@ -21,8 +20,13 @@
             @foreach (var song in songs)
             {
                 <div class="glass p-6 border border-gray-300 rounded-lg text-white transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
-                    <h3 class="text-xl font-semibold mb-2">@song.Title</h3>
+                    <h3>
+                        <img src="default.png"/>
+                    </h3>
+                    <h4 class="text-xl font-semibold mb-2">@song.Title</h4>
                     <p class="text-md">Artist: <span class="font-light">@song.Artist</span></p>
+                    <p class="text-md">Genre: <span class="font-light">@song.Genre</span></p>
+                    <p class="text-md">Release Date: <span class="font-light">@song.ReleaseDate</span></p>
                 </div>
             }
         }
