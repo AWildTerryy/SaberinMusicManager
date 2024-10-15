@@ -1,14 +1,13 @@
-@page "/Playlists/{Name}"
+@page "/Playlists/{Id}"
 @using music_manager_starter.Shared
 
 @inject HttpClient Http
 
 @code {
     [Parameter]
-    public string Name { get; set; }
+    public string Id { get; set; }
     private List<PlaylistTracks> playlist_tracks;
     private List<Song> songs;
-
     protected override async Task OnInitializedAsync()
     {
         playlist_tracks = await Http.GetFromJsonAsync<List<PlaylistTracks>>("api/PlaylistTracks");
@@ -17,7 +16,13 @@
 
     private async Task HandleDelete(Guid playlist_id, Guid song_id)
     {
-        await Http.DeleteAsync("api/PlaylistTracks/Delete/"+playlist_id+"/"+song_id);
+        PlaylistTracks song_deletion = new PlaylistTracks();
+        song_deletion.PlaylistId = playlist_id;
+        song_deletion.SongId = song_id;
+        string returnuri = string.Format("api/PlaylistTracks/Delete/{0}/{1}",playlist_id,song_id);
+        PlaylistTracks deleted_track = await Http.DeleteFromJsonAsync<PlaylistTracks>(returnuri);
+        playlist_tracks = playlist_tracks.Where((playlist_track)=> deleted_track.PlaylistId != playlist_track.PlaylistId || deleted_track.SongId != playlist_track.SongId).ToList();
+        StateHasChanged();
     }
 }
 
@@ -27,9 +32,7 @@
       <div class="overflow-hidden">
         <div>
             <button type="button" onclick="window.location='/playlists'" class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-none focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none">Go Back</button>
-        </div>
-        <div class= "relative">
-            <button type="button" onclick="window.location='/AddSongToPlaylist'" class="absolute right-0 inline-flex gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-none focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none">Add Song</button>
+            <button type="button" onclick="window.location='/AddSongToPlaylist'" class="absolute right-0 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-none focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none">Add Song</button>
         </div>
         <table class="min-w-full divide-y divide-gray-200">
           <thead>
@@ -44,26 +47,31 @@
           <tbody>
             @if (playlist_tracks != null && songs != null)
             {
+                Guid target_playlist = Guid.Parse(Id);
                 @foreach (var playlist in playlist_tracks)
                 {
-                    Guid target_song = playlist.SongId;
-                    @foreach (var song in songs)
+                    @if(target_playlist == playlist.PlaylistId)
                     {
-                        @if(target_song == song.Id)
-                        {
+                      Guid target_song = playlist.SongId;
+                      @foreach (var song in songs)
+                      {
+                          @if(target_song == song.Id)
+                          {
                             <tr class="odd:bg-white even:bg-gray-100">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">@song.Title</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">@song.Artist</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">@song.Album</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">@song.Genre</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                                    <button type="button" onclick=HandleDelete(playlist.Id,song.Id) class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-none focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none">Delete</button>
-                                </td>
-                    </tr>    
-                        }    
-                    }
+                              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">@song.Title</td>
+                              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">@song.Artist</td>
+                              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">@song.Album</td>
+                              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">@song.Genre</td>
+                              <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                                  <button type="button" @onclick="(()=>HandleDelete(playlist.PlaylistId,song.Id))" class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-none focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none">Delete</button>
+                              </td>
+                            </tr>    
+                          }    
+                      }
 
                 }
+
+                    }
 
             }
             else

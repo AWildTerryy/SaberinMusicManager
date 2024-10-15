@@ -39,15 +39,14 @@ namespace music_manager_starter.Server.Controllers
             return Ok();
         }
 
-        [HttpDelete]
-        [Route("api/[controller]/Delete/{playlist_id}/{song_id}")]
-        public async Task<ActionResult<PlaylistTracks>> DeletePlaylistTrack(Guid playlist_id, Guid song_id)
+        [HttpDelete()]
+        [Route("Delete/{playlist_id}/{song_id}")]
+        public async Task<ActionResult<PlaylistTracks>> DeletePlaylistTrack(string playlist_id, string song_id)
         {
-            PlaylistTracks _playlist_tracks = _context.PlaylistTracks.Where(x => x.PlaylistId.Equals(playlist_id)).FirstOrDefault();
-            _playlist_tracks.SongId = song_id;
+            PlaylistTracks _playlist_tracks = _context.PlaylistTracks.Find(Guid.Parse(playlist_id),Guid.Parse(song_id));
             _context.PlaylistTracks.Remove(_playlist_tracks);
             await _context.SaveChangesAsync();
-            return Ok();
+            return _playlist_tracks;
         }
     }
 }

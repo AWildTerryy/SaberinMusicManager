@@ -1,0 +1,81 @@
+@page "/DeletePlaylist"
+@using music_manager_starter.Shared
+@inject HttpClient Http
+
+@code {
+    private List<PlaylistTracks> playlist_tracks;
+    private List<Playlist> playlists;
+    private List<Song> songs;
+    protected override async Task OnInitializedAsync()
+    {
+        playlist_tracks = await Http.GetFromJsonAsync<List<PlaylistTracks>>("api/PlaylistTracks");
+        playlists = await Http.GetFromJsonAsync<List<Playlist>>("api/Playlists");
+        songs = await Http.GetFromJsonAsync<List<Song>>("api/songs");
+    }
+
+    private async Task HandleDelete(Guid playlist_id, Guid song_id)
+    {
+        PlaylistTracks song_deletion = new PlaylistTracks();
+        song_deletion.PlaylistId = playlist_id;
+        song_deletion.SongId = song_id;
+        string returnuri = string.Format("api/PlaylistTracks/Delete/{0}/{1}",playlist_id,song_id);
+        PlaylistTracks deleted_track = await Http.DeleteFromJsonAsync<PlaylistTracks>(returnuri);
+        playlist_tracks = playlist_tracks.Where((playlist_track)=> deleted_track.PlaylistId != playlist_track.PlaylistId || deleted_track.SongId != playlist_track.SongId).ToList();
+        StateHasChanged();
+    }
+    private async Task HandleDeletePlaylist(Playlist target_playlist)
+    {
+        foreach (var tplaylist in playlist_tracks)
+        {
+            if (target_playlist.Id == tplaylist.PlaylistId)
+            {
+                await HandleDelete(tplaylist.PlaylistId, tplaylist.SongId);
+            }
+        }
+        string deleteuri = string.Format("api/Playlists/Delete/{0}",target_playlist.Id);
+        Playlist deleted_playlist = await Http.DeleteFromJsonAsync<Playlist>(deleteuri);
+        playlists = playlists.Where((e_playlist)=> deleted_playlist.Name != e_playlist.Name || deleted_playlist.Id != e_playlist.Id).ToList();
+        StateHasChanged();
+    }
+}
+
+<div class="flex flex-col">
+  <div class="-m-1.5 overflow-x-auto">
+    <div class="p-1.5 min-w-full inline-block align-middle">
+      <div class="overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr>
+              <th scope="col" class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Playlist Name</th>
+              <th scope="col" class="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase">Remove Playlist</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (playlist_tracks != null && songs != null && playlists != null)
+            {
+                @foreach (var playlist in playlists)
+                {
+                    <tr class="odd:bg-white even:bg-gray-100">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">@playlist.Name</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                            <button type="button" @onclick="(()=>HandleDeletePlaylist(playlist))" class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-none focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none">Delete</button>
+                        </td>
+                    </tr>   
+                }
+
+            }
+            else
+            {
+                <tr class="odd:bg-white even:bg-gray-100">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">Playlist Name</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                        <button type="button" class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-none focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none">Delete</button>
+                    </td>
+                    </tr>
+            }    
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
