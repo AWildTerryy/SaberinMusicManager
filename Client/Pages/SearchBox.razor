@@ -1,0 +1,18 @@
+@typeparam TEntity
+
+<input class ="form-control" style="max-width: 600px" placeholder="Search..."@bind="search_item"/>
+<button @onclick="OnSearchClicked"class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 focus:outline-none focus:text-blue-800 disabled:opacity-50 disabled:pointer-events-none">Search</button>
+
+@code
+{
+    [Parameter]
+    public List<TEntity> items { get; set; }
+    [Parameter]
+    public EventCallback<string> on_search { get; set; }
+    
+    private string search_item;
+    private async Task OnSearchClicked()
+    {
+        await on_search.InvokeAsync(search_item);
+    }
+}
